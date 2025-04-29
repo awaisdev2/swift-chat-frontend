@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -21,6 +22,7 @@ import {
 import { createClerkSupabaseClient } from "@/config/supabase";
 
 const Header = () => {
+  const navigate = useNavigate()
   const { user, isSignedIn } = useUser();
   const { getToken } = useAuth();
 
@@ -55,19 +57,14 @@ const Header = () => {
       <div className="flex h-16 items-center px-4 container mx-auto">
         <NavigationMenu>
           <NavigationMenuList>
-            <NavigationMenuItem>
+            <NavigationMenuItem className="cursor-pointer" onClick={() => navigate('/')}>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 Home
               </NavigationMenuLink>
             </NavigationMenuItem>
-            <NavigationMenuItem>
+            <NavigationMenuItem className="cursor-pointer" onClick={() => navigate('/chats')}>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                About
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                Contact
+                Chats
               </NavigationMenuLink>
             </NavigationMenuItem>
           </NavigationMenuList>
@@ -80,7 +77,7 @@ const Header = () => {
           </SignedOut>
 
           <SignedIn>
-            <UserButton afterSignOutUrl="/" />
+            <UserButton />
             <SignOutButton>
               <Button variant="destructive">Sign Out</Button>
             </SignOutButton>
