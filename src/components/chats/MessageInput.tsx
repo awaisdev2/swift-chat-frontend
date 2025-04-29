@@ -1,10 +1,13 @@
 import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getSocket } from "@/utils/socket";
 import { useCreateMessage } from "@/queries/messages";
+import { getSocket } from "@/utils/socket";
+import { useUser } from "@clerk/clerk-react";
 
 const MessageInput = ({ channelId }: { channelId: string }) => {
+  const { user } = useUser();
   const [text, setText] = useState("");
   const { mutateAsync: createMessage, isPending } = useCreateMessage();
 
@@ -14,7 +17,19 @@ const MessageInput = ({ channelId }: { channelId: string }) => {
     const socket = getSocket();
     if (!socket) return;
 
-    const message = { text, sender: "You", self: true };
+    const messageData = {
+      content: text,
+      channelId: channelId,
+      senderId: user?.id,
+    };
+
+    const message = {
+      text,
+      sender: messageData,
+      self: true,
+      channelId,
+    };
+
     await createMessage({ channelId, content: text });
     socket.emit("send-message", message);
     setText("");

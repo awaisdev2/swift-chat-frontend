@@ -12,9 +12,9 @@ const ChatContainer = () => {
   const { data: channels } = useGetChannels();
   const { mutateAsync: createChannel } = useCreateChannel();
 
-  const onCreateChannel = async (name: string, roomId: string) => {
+  const onCreateChannel = async (name: string) => {
     try {
-      await createChannel({ name, roomId });
+      await createChannel({ name });
     } catch (error) {
       console.log(error);
     }
@@ -26,8 +26,8 @@ const ChatContainer = () => {
         channels={channels?.data || []}
         onCreateChannel={onCreateChannel}
       />
-      <div className="flex flex-col h-[calc(100vh-4rem)] max-w-3xl mx-auto border rounded shadow-sm">
-        <ChatHeader />
+      <div className="flex flex-col h-[calc(100vh-4rem)] w-full mx-auto border rounded shadow-sm">
+        <ChatHeader channelId={cId} />
         <MessageList channelId={cId} />
         <MessageInput channelId={cId} />
       </div>

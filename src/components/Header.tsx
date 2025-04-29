@@ -14,7 +14,6 @@ import {
   SignedIn,
   SignedOut,
   SignInButton,
-  SignOutButton,
   useAuth,
   UserButton,
   useUser,
@@ -22,7 +21,7 @@ import {
 import { createClerkSupabaseClient } from "@/config/supabase";
 
 const Header = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { user, isSignedIn } = useUser();
   const { getToken } = useAuth();
 
@@ -57,16 +56,24 @@ const Header = () => {
       <div className="flex h-16 items-center px-4 container mx-auto">
         <NavigationMenu>
           <NavigationMenuList>
-            <NavigationMenuItem className="cursor-pointer" onClick={() => navigate('/')}>
+            <NavigationMenuItem
+              className="cursor-pointer"
+              onClick={() => navigate("/")}
+            >
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 Home
               </NavigationMenuLink>
             </NavigationMenuItem>
-            <NavigationMenuItem className="cursor-pointer" onClick={() => navigate('/chats')}>
-              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                Chats
-              </NavigationMenuLink>
-            </NavigationMenuItem>
+            {isSignedIn && (
+              <NavigationMenuItem
+                className="cursor-pointer"
+                onClick={() => navigate("/chats")}
+              >
+                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                  Chats
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            )}
           </NavigationMenuList>
         </NavigationMenu>
         <div className="ml-auto flex items-center space-x-4">
@@ -78,9 +85,6 @@ const Header = () => {
 
           <SignedIn>
             <UserButton />
-            <SignOutButton>
-              <Button variant="destructive">Sign Out</Button>
-            </SignOutButton>
           </SignedIn>
         </div>
       </div>

@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useGetMessages = (channelId: string) => {
   return useQuery({
-    queryKey: ["messages"],
+    queryKey: ["messages", channelId],
     queryFn: () => getMessagesByChannelId(channelId),
     enabled: !!channelId
   });

@@ -18,31 +18,36 @@ interface Props {
 const MessageList = ({ channelId }: Props) => {
   const listRef = useRef<HTMLDivElement>(null);
   const socket = useSocket();
-
   const { data: fetchedMessages = [], isSuccess } = useGetMessages(channelId);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
+  // Update messages when the fetched messages are available
   useEffect(() => {
     if (isSuccess) {
       setMessages(fetchedMessages?.data || []);
     }
   }, [isSuccess, fetchedMessages]);
 
+  // Handle socket events for receiving new messages
   useEffect(() => {
     if (!socket || !channelId) return;
 
-    const handleReceive = (msg: ChatMessage) => {
-      if (msg.channelId === channelId) {
-        setMessages((prev) => [...prev, msg]);
-      }
+    const handleNewMessage = (msg: ChatMessage) => {
+      setMessages((prevMessages) => [...prevMessages, msg]);
     };
 
-    socket.on("receive-message", handleReceive);
+    socket.emit("join-channel", channelId);
+    console.log("📥 Joined channel", channelId);
+
+    socket.on("receive-message", handleNewMessage);
+
     return () => {
-      socket.off("receive-message", handleReceive);
+      socket.emit("leave-channel", channelId);
+      socket.off("receive-message", handleNewMessage);
     };
   }, [socket, channelId]);
 
+  // Scroll to the bottom of the message list on new message
   useEffect(() => {
     listRef.current?.scrollTo(0, listRef.current.scrollHeight);
   }, [messages]);
@@ -52,7 +57,10 @@ const MessageList = ({ channelId }: Props) => {
 
   return (
     <div ref={listRef} className="flex-1 overflow-y-auto bg-white p-4">
-      {messages && messages?.map((msg) => (
+      {messages.length === 0 && (
+        <div className="flex-1 p-4">Start a conversation!</div>
+      )}
+      {messages.map((msg) => (
         <MessageItem key={msg.id} message={msg} />
       ))}
     </div>

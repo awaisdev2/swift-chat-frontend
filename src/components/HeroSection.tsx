@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
+import { SignInButton, useUser } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
 
 const Hero = () => {
+  const { isSignedIn } = useUser();
   return (
     <section className="bg-background py-20">
       <div className="container mx-auto px-4 text-center">
@@ -12,9 +14,18 @@ const Hero = () => {
           Chat fast. Connect instantly. Experience real-time messaging with
           ease.
         </p>
-        <Button asChild size="lg">
-          <Link to="/chats" className="text-white">Start Chatting</Link>
-        </Button>
+        {!isSignedIn && (
+          <SignInButton mode="modal">
+            <Button variant="outline">Sign In</Button>
+          </SignInButton>
+        )}
+        {isSignedIn && (
+          <Button asChild size="lg">
+            <Link to="/chats" className="text-white">
+              Start Chatting
+            </Link>
+          </Button>
+        )}
       </div>
     </section>
   );

@@ -10,7 +10,7 @@ interface Channel {
 
 interface ChannelsListProps {
   channels: Channel[];
-  onCreateChannel: (name: string, roomId: string) => void;
+  onCreateChannel: (name: string) => void;
 }
 
 const ChannelsList: React.FC<ChannelsListProps> = ({
@@ -31,12 +31,12 @@ const ChannelsList: React.FC<ChannelsListProps> = ({
   const handleCreateChannel = async () => {
     const name = prompt("Enter new channel name:");
     if (name?.trim()) {
-      onCreateChannel(name.trim(), "a546d061-c394-4566-aa3c-03e5742054d1");
+      onCreateChannel(name.trim());
     }
   };
 
   return (
-    <div className="flex w-full h-full">
+    <>
       <div
         className={clsx(
           "flex-col w-full max-w-[300px] bg-gray-800 text-white transition-transform duration-300",
@@ -72,7 +72,7 @@ const ChannelsList: React.FC<ChannelsListProps> = ({
           Channels
         </Button>
       </div>
-    </div>
+    </>
   );
 };
 

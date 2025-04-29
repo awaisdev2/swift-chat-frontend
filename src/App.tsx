@@ -1,17 +1,19 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Header from "./components/Header";
 import Home from "./components/Home";
 import ChatContainer from "./components/chats/ChatContainer";
 
-function App() {
+function App({ showChatRoute }: { showChatRoute: boolean }) {
   return (
     <>
       <BrowserRouter>
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/chats" element={<ChatContainer />} />
+          {showChatRoute && <Route path="/chats" element={<ChatContainer />} />}
+          {/* Catch-all route for undefined paths */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </>
