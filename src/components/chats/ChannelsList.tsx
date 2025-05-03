@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import clsx from "clsx";
-import { Ellipsis, Pencil, Trash } from "lucide-react";
-
+import { Ellipsis, Pencil, Plus, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,6 +9,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import ChannelForm from "./ChannelForm";
+import { useDeleteChannel } from "@/queries/channels";
+import ConfirmationModal from "@/common/ConfirmationModal";
+import GenericModal from "@/common/GenericModal";
+import ChannelsSkeletonLoader from "@/common/ChannelsSkeletonLoader";
 
 interface Channel {
   id: string;
@@ -18,16 +22,24 @@ interface Channel {
 
 interface ChannelsListProps {
   channels: Channel[];
-  onCreateChannel: (name: string) => void;
+  isFetching: boolean;
 }
 
 const ChannelsList: React.FC<ChannelsListProps> = ({
   channels,
-  onCreateChannel,
+  isFetching,
 }) => {
   const [activeChannel, setActiveChannel] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+  const [showChannelFormDialog, setShowChannelFormDialog] =
+    useState<boolean>(false);
+  const [channelToDelete, setChannelToDelete] = useState<Channel | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [channelToEdit, setChannelToEdit] = useState<Channel | null>(null);
   const navigate = useNavigate();
+
+  const { mutateAsync: deleteChannel, isPending: isDeleting } =
+    useDeleteChannel();
 
   const handleChannelSelect = (id: string) => {
     setActiveChannel(id);
@@ -36,11 +48,37 @@ const ChannelsList: React.FC<ChannelsListProps> = ({
 
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
-  const handleCreateChannel = async () => {
-    const name = prompt("Enter new channel name:");
-    if (name?.trim()) {
-      onCreateChannel(name.trim());
+  const openCreateModal = () => {
+    setChannelToEdit(null);
+    setShowChannelFormDialog(true);
+  };
+
+  const openEditModal = (channel: Channel) => {
+    setChannelToEdit(channel);
+    setShowChannelFormDialog(true);
+  };
+
+  const closeModal = () => {
+    setChannelToEdit(null);
+    setShowChannelFormDialog(false);
+  };
+
+  const handleDeleteClick = (channel: Channel) => {
+    setChannelToDelete(channel);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    if (channelToDelete) {
+      await deleteChannel({ channelId: channelToDelete.id });
+      setChannelToDelete(null);
+      setShowDeleteConfirm(false);
     }
+  };
+
+  const cancelDelete = () => {
+    setChannelToDelete(null);
+    setShowDeleteConfirm(false);
   };
 
   useEffect(() => {
@@ -60,41 +98,55 @@ const ChannelsList: React.FC<ChannelsListProps> = ({
       >
         <div className="p-4 bg-gray-900 flex justify-between items-center">
           <h3 className="text-xl font-bold">Channels</h3>
-          <Button onClick={handleCreateChannel} className="bg-green-500">
-            Create
+          <Button
+            className="bg-gray-400 hover:bg-gray-300 transition-all hover:text-black text-white"
+            onClick={openCreateModal}
+          >
+            <Plus /> Create
           </Button>
         </div>
-        <div className="overflow-auto flex-grow">
-          <ul className="space-y-2 p-4">
-            {channels.map((channel) => (
-              <li
-                key={channel.id}
-                className={clsx(
-                  "p-2 rounded-md flex justify-between items-center cursor-pointer transition-all",
-                  activeChannel === channel.id
-                    ? "bg-gray-700 text-white"
-                    : "hover:bg-gray-700 text-gray-300"
-                )}
-                onClick={() => handleChannelSelect(channel.id)}
-              >
-                {channel.name}
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="bg-transparent">
-                    <Ellipsis />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem className="cursor-pointer">
-                      <Pencil /> Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-500 cursor-pointer">
-                      <Trash className="text-red-500" /> Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </li>
-            ))}
-          </ul>
+        <div className="overflow-auto flex-grow">
+          {isFetching && <ChannelsSkeletonLoader />}
+
+          {channels?.length !== 0 && !isFetching && (
+            <ul className="space-y-2 p-4">
+              {channels.map((channel) => (
+                <li
+                  key={channel.id}
+                  className={clsx(
+                    "p-2 font-medium rounded-md flex justify-between items-center transition-all",
+                    activeChannel === channel.id
+                      ? "bg-gray-700 text-white"
+                      : "hover:bg-gray-700 text-gray-300"
+                  )}
+                >
+                  <span
+                    className="cursor-pointer w-full"
+                    onClick={() => handleChannelSelect(channel.id)}
+                  >
+                    {channel.name}
+                  </span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="bg-transparent">
+                      <Ellipsis />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onClick={() => openEditModal(channel)}>
+                        <Pencil className="mr-2" /> Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-red-500 cursor-pointer"
+                        onClick={() => handleDeleteClick(channel)}
+                      >
+                        <Trash className="text-red-500 mr-2" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
 
@@ -103,6 +155,30 @@ const ChannelsList: React.FC<ChannelsListProps> = ({
           Channels
         </Button>
       </div>
+
+      {showChannelFormDialog && (
+        <GenericModal
+          size="lg"
+          isOpen={showChannelFormDialog}
+          title={channelToEdit ? "Edit Channel" : "Create Channel"}
+          onClose={closeModal}
+        >
+          <ChannelForm channelToEdit={channelToEdit} onClose={closeModal} />
+        </GenericModal>
+      )}
+
+      {showDeleteConfirm && (
+        <ConfirmationModal
+          isOpen={showDeleteConfirm}
+          title="Confirm Deletion"
+          description={`Are you sure you want to delete "${channelToDelete?.name}"?`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          onCancel={cancelDelete}
+          onConfirm={confirmDelete}
+          disableBtns={isDeleting}
+        />
+      )}
     </>
   );
 };

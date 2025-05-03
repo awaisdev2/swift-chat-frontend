@@ -72,7 +72,8 @@ const MessageInput = ({ channelId }: { channelId: string }) => {
           <div className="relative bg-gray-50 border block w-full px-4 border-gray-300 text-gray-900 text-sm rounded-lg">
             <input
               type="text"
-              className="w-[95%] message-input outline-none p-2"
+              value={text}
+              className="w-[95%] outline-none border-0 ring-0 p-2"
               placeholder="Enter your message here"
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}

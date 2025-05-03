@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -22,6 +22,7 @@ import { createClerkSupabaseClient } from "@/config/supabase";
 
 const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isSignedIn } = useUser();
   const { getToken } = useAuth();
 
@@ -60,7 +61,13 @@ const Header = () => {
               className="cursor-pointer"
               onClick={() => navigate("/")}
             >
-              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+              <NavigationMenuLink
+                className={`${navigationMenuTriggerStyle()} ${
+                  location.pathname === "/"
+                    ? "bg-gray-400 hover:bg-gray-300 transition-all text-white"
+                    : "hover:bg-gray-300"
+                }`}
+              >
                 Home
               </NavigationMenuLink>
             </NavigationMenuItem>
@@ -69,7 +76,13 @@ const Header = () => {
                 className="cursor-pointer"
                 onClick={() => navigate("/chats")}
               >
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                <NavigationMenuLink
+                  className={`${navigationMenuTriggerStyle()} ${
+                    location.pathname === "/chats"
+                      ? "bg-gray-400 hover:bg-gray-300 transition-all text-white"
+                      : "hover:bg-gray-300"
+                  }`}
+                >
                   Chats
                 </NavigationMenuLink>
               </NavigationMenuItem>
