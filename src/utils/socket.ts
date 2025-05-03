@@ -2,8 +2,10 @@ import { io, Socket } from "socket.io-client";
 
 let socket: Socket;
 
+const VITE_API_URL = "http://localhost:6011";
+
 export const initSocket = (token: string) => {
-  socket = io(import.meta.env.VITE_API_URL || "http://localhost:6011", {
+  socket = io(VITE_API_URL, {
     withCredentials: true,
     transports: ["websocket"],
     auth: { token },
