@@ -1,7 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { FC } from "react";
 import { useUser } from "@clerk/clerk-react";
+import dayjs from "dayjs";
 
-const MessageItem = ({ message }: { message: any }) => {
+import { MessageItemProps } from "@/utils/messages.type";
+import { Dot } from "lucide-react";
+
+const MessageItem: FC<MessageItemProps> = ({ message }) => {
   const { user } = useUser();
   const isRecipientUser = user?.id === message.created_by;
   return (
@@ -17,7 +21,7 @@ const MessageItem = ({ message }: { message: any }) => {
           }`}
         >
           <img
-            src={message.users?.image || '/assets/blank.png'}
+            src={message.users?.image || "/assets/blank.png"}
             alt="User Avatar"
             className={`w-8 h-8 rounded-full object-cover ${
               isRecipientUser ? "ml-2" : "mr-2"
@@ -32,8 +36,8 @@ const MessageItem = ({ message }: { message: any }) => {
             }`}
           >
             <p className="text-sm">{message.content}</p>
-            <span className="text-xs block mt-1 text-right font-medium">
-              {message.users?.name}
+            <span className="text-xs flex items-center justify-end mt-1 text-right font-medium">
+              {message.users?.name} <Dot /> {dayjs(message.created_at).fromNow()}
             </span>
           </div>
         </div>

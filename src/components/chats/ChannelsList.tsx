@@ -1,7 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import clsx from "clsx";
+import { Ellipsis, Pencil, Trash } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Channel {
   id: string;
@@ -35,6 +43,13 @@ const ChannelsList: React.FC<ChannelsListProps> = ({
     }
   };
 
+  useEffect(() => {
+    if (channels?.length > 0) {
+      navigate(`?cId=${channels[0]?.id}`);
+      setActiveChannel(channels[0]?.id);
+    }
+  }, [channels, navigate]);
+
   return (
     <>
       <div
@@ -55,12 +70,28 @@ const ChannelsList: React.FC<ChannelsListProps> = ({
               <li
                 key={channel.id}
                 className={clsx(
-                  "p-2 rounded-md cursor-pointer hover:bg-gray-700 transition-all",
-                  activeChannel === channel.id && "bg-gray-700"
+                  "p-2 rounded-md flex justify-between items-center cursor-pointer transition-all",
+                  activeChannel === channel.id
+                    ? "bg-gray-700 text-white"
+                    : "hover:bg-gray-700 text-gray-300"
                 )}
                 onClick={() => handleChannelSelect(channel.id)}
               >
                 {channel.name}
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="bg-transparent">
+                    <Ellipsis />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem className="cursor-pointer">
+                      <Pencil /> Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="text-red-500 cursor-pointer">
+                      <Trash className="text-red-500" /> Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </li>
             ))}
           </ul>

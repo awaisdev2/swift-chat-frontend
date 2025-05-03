@@ -4,6 +4,8 @@ import Header from "./components/Header";
 import Home from "./components/Home";
 import ChatContainer from "./components/chats/ChatContainer";
 
+import './App.css'
+
 function App({ showChatRoute }: { showChatRoute: boolean }) {
   return (
     <>

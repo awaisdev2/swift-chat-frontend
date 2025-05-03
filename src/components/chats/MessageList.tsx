@@ -1,25 +1,15 @@
 import { useEffect, useRef, useState } from "react";
+
 import MessageItem from "./MessageItem";
 import { useSocket } from "../../utils/useSocket";
 import { useGetMessages } from "@/queries/messages";
+import { Message } from "@/utils/messages.type";
 
-type ChatMessage = {
-  id: string;
-  text: string;
-  sender: string;
-  channelId: string;
-  self?: boolean;
-};
-
-interface Props {
-  channelId: string;
-}
-
-const MessageList = ({ channelId }: Props) => {
+const MessageList = ({ channelId }: { channelId: string }) => {
   const listRef = useRef<HTMLDivElement>(null);
   const socket = useSocket();
   const { data: fetchedMessages = [], isSuccess } = useGetMessages(channelId);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   // Update messages when the fetched messages are available
   useEffect(() => {
@@ -32,7 +22,7 @@ const MessageList = ({ channelId }: Props) => {
   useEffect(() => {
     if (!socket || !channelId) return;
 
-    const handleNewMessage = (msg: ChatMessage) => {
+    const handleNewMessage = (msg: Message) => {
       setMessages((prevMessages) => [...prevMessages, msg]);
     };
 
