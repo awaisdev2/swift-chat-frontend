@@ -6,6 +6,7 @@ import { ClerkProvider } from "@clerk/clerk-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { ToastContainer } from 'react-toastify';
 
 dayjs.extend(relativeTime);
 
@@ -28,6 +29,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
       <QueryClientProvider client={queryClient}>
+        <ToastContainer position="bottom-right" autoClose={3000} />
         <AppWithSocket />
       </QueryClientProvider>
     </ClerkProvider>

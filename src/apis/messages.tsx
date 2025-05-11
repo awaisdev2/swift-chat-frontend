@@ -8,11 +8,26 @@ export const getMessagesByChannelId = async (channelId: string) => {
 export const createMessage = async ({
   channelId,
   content,
+  attachment,
 }: {
   channelId: string;
   content: string;
+  attachment?: string;
 }) => {
-  const res = await apiClient.post(`/messages/${channelId}`, {content});
+  const res = await apiClient.post(`/messages/${channelId}`, {content, attachment});
+  return res.data;
+};
+
+export const updateMessage = async ({
+  messageId,
+  content,
+  attachment,
+}: {
+  messageId: string;
+  content: string;
+  attachment?: string;
+}) => {
+  const res = await apiClient.put(`/messages/${messageId}`, {content, attachment});
   return res.data;
 };
 
