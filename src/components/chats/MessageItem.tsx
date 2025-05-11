@@ -11,7 +11,7 @@ const MessageItem: FC<MessageItemProps> = ({ message }) => {
 
   const formatMessage = (messageContent: string) => {
     const messages = messageContent?.split(" ");
-    return messages.map((_message, index) => {
+    return messages?.map((_message, index) => {
       if (_message.startsWith("http://") || _message.startsWith("https://")) {
         return (
           <a

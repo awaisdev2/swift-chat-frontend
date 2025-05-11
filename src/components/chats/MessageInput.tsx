@@ -1,12 +1,14 @@
-import { useState } from "react";
-import data from "@emoji-mart/data";
+import { useRef, useState } from "react";
+import { Smile, Paperclip } from "lucide-react";
 import Picker from "@emoji-mart/react";
-import { Smile } from "lucide-react";
-
+import data from "@emoji-mart/data";
 import { Button } from "@/components/ui/button";
 import { useCreateMessage } from "@/queries/messages";
 import { getSocket } from "@/utils/socket";
 import { useUser } from "@clerk/clerk-react";
+import AttachmentUploader, {
+  AttachmentUploaderHandle,
+} from "@/utils/AttachmentUploader";
 
 type EomjiMartProps = {
   id: string;
@@ -21,49 +23,64 @@ const MessageInput = ({ channelId }: { channelId: string }) => {
   const { user } = useUser();
   const [text, setText] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [attachmentUrl, setAttachmentUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { mutateAsync: createMessage, isPending } = useCreateMessage();
+
+  const uploaderRef = useRef<AttachmentUploaderHandle>(null);
 
   const addEmoji = (emoji: EomjiMartProps) => {
     setText((prev) => prev + emoji.native);
   };
 
+  const handleFileUpload = (url: string) => {
+    setAttachmentUrl(url);
+    setPreviewUrl(url);
+  };
+
+  const handleFileRemove = () => {
+    setAttachmentUrl(null);
+    setPreviewUrl(null);
+  };
+
   const sendMessage = async () => {
-    if (!text.trim()) return;
+    if (!text.trim() && !attachmentUrl) return;
 
     const socket = getSocket();
     if (!socket) return;
 
-    const messageData = {
+    await createMessage({
+      channelId,
       content: text,
-      channelId: channelId,
-      senderId: user?.id,
-      name: user?.fullName,
-      image: user?.imageUrl,
-      email: user?.emailAddresses,
-    };
+      attachment: attachmentUrl ? String(attachmentUrl) : undefined,
+    });
 
-    const message = {
+    socket.emit("send-message", {
       text,
-      sender: messageData,
+      sender: {
+        content: text,
+        channelId,
+        senderId: user?.id,
+        name: user?.fullName,
+        image: user?.imageUrl,
+        email: user?.emailAddresses,
+        attachment: attachmentUrl,
+      },
       self: true,
       channelId,
-    };
+      attachment: attachmentUrl,
+    });
 
-    await createMessage({ channelId, content: text });
-    socket.emit("send-message", message);
     setText("");
+    setAttachmentUrl(null);
+    uploaderRef.current?.clearFile();
   };
 
   return (
     <div className="flex flex-col border-t p-4">
       {showEmojiPicker && (
         <div className="mb-2 absolute bottom-20 right-20">
-          <Picker
-            data={data}
-            //onClickOutside={() => setShowEmojiPicker((prev) => !prev)}
-            theme="light"
-            onEmojiSelect={addEmoji}
-          />
+          <Picker data={data} theme="light" onEmojiSelect={addEmoji} />
         </div>
       )}
 
@@ -78,22 +95,41 @@ const MessageInput = ({ channelId }: { channelId: string }) => {
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             />
-            <div className="absolute inset-y-0 end-0 flex items-center px-3.5">
+            <div className="absolute inset-y-0 end-0 flex items-center gap-1 px-3.5">
               <Button
                 type="button"
-                className="px-2"
                 size="sm"
+                className="px-2"
                 onClick={() => setShowEmojiPicker((prev) => !prev)}
               >
                 <Smile />
               </Button>
+              <Button
+                type="button"
+                size="sm"
+                className="px-2"
+                onClick={() => uploaderRef.current?.triggerFileSelect()}
+                disabled={!!previewUrl}
+              >
+                <Paperclip />
+              </Button>
             </div>
           </div>
         </div>
+
         <Button type="submit" onClick={sendMessage} disabled={isPending}>
           {isPending ? "Sending..." : "Send"}
         </Button>
       </div>
+
+      <AttachmentUploader
+        ref={uploaderRef}
+        chatId={channelId}
+        onUpload={handleFileUpload}
+        onRemove={handleFileRemove}
+        previewUrl={previewUrl}
+        setPreviewUrl={setPreviewUrl}
+      />
     </div>
   );
 };
