@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { X, Loader2 } from "lucide-react";
 
 import { uploadAttachment } from "@/config/uploadAttachments";
+import RenderFileIcon from "@/common/RenderFileIcon";
 
 export type AttachmentUploaderHandle = {
   triggerFileSelect: () => void;
@@ -109,36 +110,24 @@ const AttachmentUploader = forwardRef(function AttachmentUploader(
           <span>Uploading file...</span>
         </div>
       ) : previewUrl ? (
-        <div className="relative mt-2 text-sm">
-          {fileType?.startsWith("image/") ? (
-            <div className="relative inline-block">
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="max-w-xs rounded"
-              />
-              <button
-                type="button"
-                onClick={clearFile}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                disabled={isUploading}
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          ) : (
-            <div className="relative inline-block">
-              <div className="text-blue-600 underline">{previewUrl}</div>
-              <button
-                type="button"
-                onClick={clearFile}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                disabled={isUploading}
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          )}
+        <div className="relative mt-4 text-sm">
+          <div className="relative inline-block">
+            <RenderFileIcon
+              fileType={fileType}
+              attachmentUrl={previewUrl}
+              className={`max-w-xs rounded ${
+                fileType?.startsWith("image/") ? "w-40" : "w-24"
+              }`}
+            />
+            <button
+              type="button"
+              onClick={clearFile}
+              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+              disabled={isUploading}
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
         </div>
       ) : null}
     </>
