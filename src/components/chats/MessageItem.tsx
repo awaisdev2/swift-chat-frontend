@@ -18,10 +18,13 @@ import MessageInput from "./MessageInput";
 const MessageItem: FC<MessageItemProps> = ({ message }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { user } = useUser();
   const isRecipientUser = user?.id === message.created_by;
 
   const { mutateAsync: deleteMessage } = useDeleteMessage();
+
+  const MAX_LENGTH = 200;
 
   const handleDeleteMessage = async () => {
     try {
@@ -61,6 +64,15 @@ const MessageItem: FC<MessageItemProps> = ({ message }) => {
       }
     });
   };
+
+  const getDisplayText = () => {
+    if (!message.content) return "";
+    if (isExpanded || message.content.length <= MAX_LENGTH) {
+      return formatMessage(message.content);
+    }
+    return formatMessage(message.content.slice(0, MAX_LENGTH) + "...");
+  };
+
   return (
     <>
       {(message.attachments || message.content) && (
@@ -96,7 +108,20 @@ const MessageItem: FC<MessageItemProps> = ({ message }) => {
                 {!isEditing && !message.deleted_at && (
                   <>
                     <p className="text-sm mr-4 mb-2">
-                      {formatMessage(message.content)}
+                      {getDisplayText()}
+                      {message.content &&
+                        message.content.length > MAX_LENGTH && (
+                          <button
+                            onClick={() => setIsExpanded((prev) => !prev)}
+                            className={`ml-2 text-xs font-semibold ${
+                              isRecipientUser
+                                ? "text-blue-300"
+                                : "text-blue-600"
+                            }`}
+                          >
+                            {isExpanded ? "Read Less" : "Read More"}
+                          </button>
+                        )}
                     </p>
 
                     {message.attachments &&
