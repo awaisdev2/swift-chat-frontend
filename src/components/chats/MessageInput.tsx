@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Smile, Paperclip } from "lucide-react";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
@@ -43,10 +43,13 @@ const MessageInput = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(
     message?.attachments?.[0]?.url || null
   );
-  const { mutateAsync: createMessage, isPending } = useCreateMessage();
-  const { mutateAsync: updateMessage } = useUpdateMessage();
+  const { mutateAsync: createMessage, isPending: isCreating } =
+    useCreateMessage();
+  const { mutateAsync: updateMessage, isPending: isUpdating } =
+    useUpdateMessage();
 
   const uploaderRef = useRef<AttachmentUploaderHandle>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const addEmoji = (emoji: EomjiMartProps) => {
     setText((prev) => prev + emoji.native);
@@ -137,6 +140,16 @@ const MessageInput = ({
     uploaderRef.current?.clearFile();
   };
 
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(
+        textareaRef.current.scrollHeight,
+        200
+      )}px`;
+    }
+  }, [text]);
+
   return (
     <div className={`flex flex-col p-4 ${message ? "border-0" : "border-t"}`}>
       {showEmojiPicker && (
@@ -145,18 +158,28 @@ const MessageInput = ({
         </div>
       )}
 
-      <div className="flex items-center gap-2">
-        <div className="w-full">
+      <div className={`${setIsEditing ? "block" : "flex"} items-center gap-2`}>
+        <div className={`${setIsEditing ? "w-full mb-3" : "w-full"}`}>
           <div className="relative bg-gray-50 border block w-full px-4 border-gray-300 text-gray-900 text-sm rounded-lg">
-            <input
-              type="text"
+            <textarea
+              ref={textareaRef}
               value={text}
-              className="w-[90%] outline-none border-0 ring-0 p-2"
+              rows={1}
+              className="resize-none w-[90%] max-h-[200px] outline-none border-0 ring-0 p-2 bg-transparent overflow-y-auto"
               placeholder="Enter your message here"
               onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
             />
-            <div className="absolute inset-y-0 end-0 flex items-center gap-1 px-3.5">
+            <div
+              className={`absolute ${
+                setIsEditing ? "top-[6px] right-0" : "inset-y-0 end-0"
+              } flex items-center gap-1 px-3.5`}
+            >
               <Button
                 type="button"
                 size="sm"
@@ -182,14 +205,22 @@ const MessageInput = ({
           <Button
             type="button"
             onClick={() => setIsEditing(false)}
-            disabled={isPending}
+            disabled={isUpdating}
+            className="mr-2 bg-white text-black hover:bg-gray-300"
           >
             Cancel
           </Button>
         )}
 
-        <Button type="submit" onClick={sendMessage} disabled={isPending}>
-          {isPending ? "Sending..." : "Send"}
+        <Button
+          type="submit"
+          onClick={sendMessage}
+          className={`${
+            setIsEditing ? "bg-white text-black hover:bg-gray-300" : ""
+          }`}
+          disabled={isCreating || isUpdating}
+        >
+          {isCreating || isUpdating ? "Sending..." : "Send"}
         </Button>
       </div>
 
