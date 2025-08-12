@@ -17,7 +17,7 @@ function AppWithSocket() {
     init();
   }, [getToken, isSignedIn]);
 
-  return <App showChatRoute={isSignedIn ? isSignedIn : false} />;
+  return <App />;
 }
 
 export default AppWithSocket;
