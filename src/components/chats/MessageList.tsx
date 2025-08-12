@@ -55,9 +55,8 @@ const MessageList = ({ channelId }: { channelId: string }) => {
       {messages.length === 0 && (
         <div className="flex-1 p-4">Start a conversation!</div>
       )}
-      {isFetching && <MessagesSkeletonLoader />}
+      {messages.length === 0 && isFetching && <MessagesSkeletonLoader />}
       {messages.length !== 0 &&
-        !isFetching &&
         messages.map((msg) => <MessageItem key={msg.id} message={msg} />)}
     </div>
   );

@@ -4,6 +4,7 @@ import {
   getMessagesByChannelId,
   updateMessage,
 } from "@/apis/messages";
+import { MessageAttachments } from "@/utils/messages.type";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useGetMessages = (channelId: string) => {
@@ -20,12 +21,12 @@ export const useCreateMessage = () => {
     mutationFn: ({
       channelId,
       content,
-      attachment,
+      attachments,
     }: {
       channelId: string;
       content: string;
-      attachment?: string;
-    }) => createMessage({ channelId, content, attachment }),
+      attachments?: MessageAttachments[];
+    }) => createMessage({ channelId, content, attachments }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["messages"] });
     },
@@ -36,14 +37,16 @@ export const useUpdateMessage = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
+      channelId,
       messageId,
       content,
-      attachment,
+      attachments,
     }: {
+      channelId: string;
       messageId: string;
       content: string;
-      attachment?: string;
-    }) => updateMessage({ messageId, content, attachment }),
+      attachments?: MessageAttachments[];
+    }) => updateMessage({ channelId, messageId, content, attachments }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["messages"] });
     },
@@ -53,7 +56,13 @@ export const useUpdateMessage = () => {
 export const useDeleteMessage = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (messageId: string) => deleteMessage(messageId),
+    mutationFn: ({
+      channelId,
+      messageId,
+    }: {
+      channelId: string;
+      messageId: string;
+    }) => deleteMessage({ channelId, messageId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["messages"] });
     },

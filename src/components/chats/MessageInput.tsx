@@ -1,14 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useRef, useState } from "react";
 import { Smile, Paperclip } from "lucide-react";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 import { Button } from "@/components/ui/button";
-import { useCreateMessage } from "@/queries/messages";
+
+import { useCreateMessage, useUpdateMessage } from "@/queries/messages";
 import { getSocket } from "@/utils/socket";
 import { useUser } from "@clerk/clerk-react";
 import AttachmentUploader, {
   AttachmentUploaderHandle,
 } from "@/utils/AttachmentUploader";
+import { Message } from "@/utils/messages.type";
 
 type EomjiMartProps = {
   id: string;
@@ -19,13 +22,29 @@ type EomjiMartProps = {
   keywords: string[];
 };
 
-const MessageInput = ({ channelId }: { channelId: string }) => {
+const MessageInput = ({
+  channelId,
+  message,
+  setIsEditing,
+}: {
+  channelId: string;
+  message?: Message;
+  setIsEditing?: (value: boolean) => void;
+}) => {
   const { user } = useUser();
-  const [text, setText] = useState("");
+  const [text, setText] = useState(message?.content || "");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [attachmentUrl, setAttachmentUrl] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [attachmentUrl, setAttachmentUrl] = useState<string | null>(
+    message?.attachments?.[0]?.url || null
+  );
+  const [attachments, setAttachments] = useState<any>(
+    message?.attachments?.[0] || null
+  );
+  const [previewUrl, setPreviewUrl] = useState<string | null>(
+    message?.attachments?.[0]?.url || null
+  );
   const { mutateAsync: createMessage, isPending } = useCreateMessage();
+  const { mutateAsync: updateMessage } = useUpdateMessage();
 
   const uploaderRef = useRef<AttachmentUploaderHandle>(null);
 
@@ -49,11 +68,37 @@ const MessageInput = ({ channelId }: { channelId: string }) => {
     const socket = getSocket();
     if (!socket) return;
 
-    await createMessage({
-      channelId,
-      content: text,
-      attachment: attachmentUrl ? String(attachmentUrl) : undefined,
-    });
+    if (message) {
+      await updateMessage({
+        channelId,
+        messageId: message.id.toString(),
+        content: text,
+        attachments: attachmentUrl
+          ? [
+              {
+                original_name: attachments?.name,
+                file_type: attachments?.type,
+                url: attachmentUrl,
+              },
+            ]
+          : undefined,
+      });
+      if (setIsEditing) setIsEditing(false);
+    } else {
+      await createMessage({
+        channelId,
+        content: text,
+        attachments: attachmentUrl
+          ? [
+              {
+                original_name: attachments?.name,
+                file_type: attachments?.type,
+                url: attachmentUrl,
+              },
+            ]
+          : undefined,
+      });
+    }
 
     socket.emit("send-message", {
       text,
@@ -64,11 +109,27 @@ const MessageInput = ({ channelId }: { channelId: string }) => {
         name: user?.fullName,
         image: user?.imageUrl,
         email: user?.emailAddresses,
-        attachment: attachmentUrl,
+        attachments: attachmentUrl
+          ? [
+              {
+                original_name: attachments?.name,
+                file_type: attachments?.type,
+                url: attachmentUrl,
+              },
+            ]
+          : undefined,
       },
       self: true,
       channelId,
-      attachment: attachmentUrl,
+      attachments: attachmentUrl
+        ? [
+            {
+              original_name: attachments?.name,
+              file_type: attachments?.type,
+              url: attachmentUrl,
+            },
+          ]
+        : undefined,
     });
 
     setText("");
@@ -77,7 +138,7 @@ const MessageInput = ({ channelId }: { channelId: string }) => {
   };
 
   return (
-    <div className="flex flex-col border-t p-4">
+    <div className={`flex flex-col p-4 ${message ? "border-0" : "border-t"}`}>
       {showEmojiPicker && (
         <div className="mb-2 absolute bottom-20 right-20">
           <Picker data={data} theme="light" onEmojiSelect={addEmoji} />
@@ -90,7 +151,7 @@ const MessageInput = ({ channelId }: { channelId: string }) => {
             <input
               type="text"
               value={text}
-              className="w-[95%] outline-none border-0 ring-0 p-2"
+              className="w-[90%] outline-none border-0 ring-0 p-2"
               placeholder="Enter your message here"
               onChange={(e) => setText(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
@@ -117,6 +178,16 @@ const MessageInput = ({ channelId }: { channelId: string }) => {
           </div>
         </div>
 
+        {message && setIsEditing && (
+          <Button
+            type="button"
+            onClick={() => setIsEditing(false)}
+            disabled={isPending}
+          >
+            Cancel
+          </Button>
+        )}
+
         <Button type="submit" onClick={sendMessage} disabled={isPending}>
           {isPending ? "Sending..." : "Send"}
         </Button>
@@ -129,6 +200,7 @@ const MessageInput = ({ channelId }: { channelId: string }) => {
         onRemove={handleFileRemove}
         previewUrl={previewUrl}
         setPreviewUrl={setPreviewUrl}
+        setAttachments={setAttachments}
       />
     </div>
   );

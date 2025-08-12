@@ -1,22 +1,42 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const RenderFileIcon = ({
   fileType,
-  className = "cursor-pointer",
+  className = "cursor-pointer rounded-lg",
   attachmentUrl,
+  messagesAttachment = false,
 }: {
-  fileType: string | null;
+  fileType: any;
   className?: string;
-  attachmentUrl: string;
+  attachmentUrl: any;
+  messagesAttachment?: boolean;
 }) => {
   switch (fileType) {
     case "application/pdf":
-      return <img className={className} src="/assets/pdf.svg" alt="PDF Icon" />;
+      return (
+        <img
+          className={className}
+          onClick={() => messagesAttachment && window.open(attachmentUrl, "_blank")}
+          src="/assets/pdf.svg"
+          alt="PDF Icon"
+        />
+      );
     case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
       return (
-        <img className={className} src="/assets/xls.svg" alt="Excel Icon" />
+        <img
+          className={className}
+          onClick={() => messagesAttachment && window.open(attachmentUrl, "_blank")}
+          src="/assets/xls.svg"
+          alt="Excel Icon"
+        />
       );
     case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
       return (
-        <img className={className} src="/assets/doc.svg" alt="Docs Icon" />
+        <img
+          className={className}
+          onClick={() => messagesAttachment && window.open(attachmentUrl, "_blank")}
+          src="/assets/doc.svg"
+          alt="Docs Icon"
+        />
       );
     case "image/jpeg":
     case "image/jpg":
@@ -24,13 +44,21 @@ const RenderFileIcon = ({
       return (
         <img
           className={className}
+          onClick={() => window.open(attachmentUrl, "_blank")}
           src={attachmentUrl || "/assets/jpg.svg"}
           alt="Img Icon"
         />
       );
     default:
-      return (
+      return messagesAttachment ? (
         <img className={className} src="/assets/file.svg" alt="File Icon" />
+      ) : (
+        <img
+          className={className}
+          onClick={() => messagesAttachment && window.open(attachmentUrl, "_blank")}
+          src="/assets/file.svg"
+          alt="File Icon"
+        />
       );
   }
 };

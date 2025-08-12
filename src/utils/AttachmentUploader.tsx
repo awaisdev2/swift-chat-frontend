@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useAuth } from "@clerk/clerk-react";
 import { useState, forwardRef, useImperativeHandle, useRef } from "react";
 import { toast } from "react-toastify";
@@ -18,12 +19,14 @@ const AttachmentUploader = forwardRef(function AttachmentUploader(
     onRemove,
     previewUrl,
     setPreviewUrl,
+    setAttachments,
   }: {
     chatId: string;
     onUpload: (url: string) => void;
     onRemove?: () => void;
     previewUrl: string | null;
     setPreviewUrl: (url: string | null) => void;
+    setAttachments: (attachments: any) => void;
   },
   ref
 ) {
@@ -65,6 +68,7 @@ const AttachmentUploader = forwardRef(function AttachmentUploader(
 
       const url = await uploadAttachment(file, chatId, token);
       onUpload(url);
+      setAttachments(file);
       setPreviewUrl(
         file.type.startsWith("image/") ? URL.createObjectURL(file) : file.name
       );
@@ -114,9 +118,9 @@ const AttachmentUploader = forwardRef(function AttachmentUploader(
           <div className="relative inline-block">
             <RenderFileIcon
               fileType={fileType}
-              attachmentUrl={previewUrl}
+              attachmentUrl={fileType?.startsWith("image/") ? previewUrl : null}
               className={`max-w-xs rounded ${
-                fileType?.startsWith("image/") ? "w-40" : "w-24"
+                fileType?.startsWith("image/") ? "w-40 cursor-pointer" : "w-24"
               }`}
             />
             <button
