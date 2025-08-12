@@ -79,8 +79,8 @@ const MessageInput = ({
         attachments: attachmentUrl
           ? [
               {
-                original_name: attachments?.name,
-                file_type: attachments?.type,
+                original_name: attachments?.original_name || attachments?.name,
+                file_type: attachments?.file_type || attachments?.type,
                 url: attachmentUrl,
               },
             ]
